@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "version": "1.0",
+  "name": "TabCollector",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["activeTab"]
+}

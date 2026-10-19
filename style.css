@@ -1,0 +1,105 @@
+:root {
+  --primary-color: #85cf5b;
+  --accent-color: whitesmoke;
+  --bg-color: #39353a;
+}
+
+body {
+  font-family: sans-serif;
+  background: var(--bg-color);
+  margin: 0;
+  padding: 10px;
+  width: 480px;
+  box-sizing: border-box;
+}
+
+input {
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+  box-sizing: border-box;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border: 1px solid var(--primary-color);
+  background-color: var(--bg-color);
+  color: var(--accent-color);
+}
+
+.btns-container {
+  display: flex;
+}
+
+button {
+  color: var(--accent-color);
+  margin-top: 4px;
+  padding-inline: 12px;
+  padding-block: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+  cursor: pointer;
+  background-color: var(--primary-color);
+}
+
+#delete-btn {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  margin-left: auto;
+}
+
+#delete-btn:hover {
+  color: red;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#ul-element {
+  margin-top: 20px;
+  color: var(--accent-color);
+  list-style-type: square;
+  padding-left: 0;
+}
+
+#ul-element li {
+  margin-top: 6px;
+  margin-left: 6px;
+
+  border-bottom: 1px solid #888a8d;
+}
+
+#ul-element li:last-child {
+  border-bottom: none;
+}
+
+#ul-element li:hover {
+  background-color: var(--bg-hover);
+}
+
+#ul-element a {
+  display: block;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--primary-color);
+  padding: 4px 2px;
+
+  /* Setup a background line sitting at the bottom */
+  background-image: linear-gradient(var(--primary-color), var(--accent-color));
+  background-position: 50% 100%; /* Centered at the bottom */
+  background-repeat: no-repeat;
+  background-size: 0% 2px; /* Starts completely hidden (0% width) */
+
+  /* Transition the size of the background line */
+  transition: background-size 0.3s ease;
+}
+
+#ul-element a:hover {
+  /* Expand the line width to 100% on hover */
+  background-size: 100% 2px;
+}
