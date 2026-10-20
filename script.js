@@ -55,10 +55,16 @@ function deleteTabs() {
 async function saveTab() {
   const queryOptions = { active: true, currentWindow: true };
   const [tab] = await chrome.tabs.query(queryOptions);
-  const currentUrl = tab.url;
-
-  handleAddItem(currentUrl);
-  renderItems();
+  if (tab && tab.url) {
+    const currentUrl = tab.url;
+    handleAddItem(currentUrl);
+    renderItems();
+  } else {
+    alert("Cannot save internal browser pages for security reasons.");
+    console.warn(
+      "Access denied: The browser blocks URL access on internal pages.",
+    );
+  }
 }
 
 saveBtn.addEventListener("click", checkAndAdd);
