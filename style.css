@@ -66,9 +66,11 @@ button:hover {
 }
 
 #ul-element li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 6px;
   margin-left: 6px;
-
   border-bottom: 1px solid #888a8d;
 }
 
@@ -81,7 +83,8 @@ button:hover {
 }
 
 #ul-element a {
-  display: block;
+  flex-grow: 1;
+  min-width: 0;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -102,4 +105,24 @@ button:hover {
 #ul-element a:hover {
   /* Expand the line width to 100% on hover */
   background-size: 100% 2px;
+}
+
+#ul-element li button {
+  background: transparent;
+  color: #888a8d;
+  border: none;
+  font-size: 14px;
+  padding: 6px 10px;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+#ul-element li button:hover {
+  color: red;
+  transform: scale(1.2);
+  box-shadow: none;
 }

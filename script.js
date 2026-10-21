@@ -1,73 +1,144 @@
-let inputElement = document.getElementById("input-element");
-let saveBtn = document.getElementById("save-btn");
-let deleteBtn = document.getElementById("delete-btn");
-let ulElement = document.getElementById("ul-element");
-let tabBtn = document.getElementById("tab-btn");
+const inputElement = document.getElementById("input-element");
+const saveBtn = document.getElementById("save-btn");
+const deleteBtn = document.getElementById("delete-btn");
+const ulElement = document.getElementById("ul-element");
+const tabBtn = document.getElementById("tab-btn");
 
-let savedItems = [];
-const leadsFromLocalStorage = localStorage.getItem("savedItems");
+const STORAGE_KEY = "savedItems";
 
-if (leadsFromLocalStorage) {
-  const itemsFromLocalStorage = JSON.parse(leadsFromLocalStorage);
-  savedItems = Object.values(itemsFromLocalStorage);
+// Initialize saved items
+function loadItems() {
+  try {
+    const storedItems = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
 
+    return Array.isArray(storedItems) ? storedItems : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+let savedItems = loadItems();
+
+// Save items to localStorage
+function persistItems() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(savedItems));
+}
+
+// Check if the item is a valid HTTP or HTTPS URL
+function isValidUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+// Render saved items
+function renderItems() {
+  ulElement.replaceChildren();
+
+  const fragment = document.createDocumentFragment();
+
+  for (const item of savedItems) {
+    const li = document.createElement("li");
+    const button = document.createElement("button");
+
+    if (isValidUrl(item)) {
+      const anchor = document.createElement("a");
+      anchor.textContent = item;
+      anchor.href = item;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+
+      li.append(anchor);
+    } else {
+      li.textContent = item;
+    }
+
+    // Add delete button for each item
+    button.textContent = "✕";
+
+    li.appendChild(button);
+    fragment.append(li);
+  }
+
+  ulElement.append(fragment);
+}
+
+// Add a new item
+function addItem(value) {
+  const item = value?.trim();
+
+  if (!item) return;
+  if (savedItems.includes(item)) {
+    alert("This item is already saved.");
+    return;
+  }
+
+  savedItems.push(item);
+  persistItems();
   renderItems();
 }
 
-function handleAddItem(item) {
-  savedItems.push(item);
-  localStorage.setItem("savedItems", JSON.stringify(savedItems));
+// Handle manual input
+function handleSaveInput() {
+  const value = inputElement.value;
+
+  if (!value.trim()) return;
+
+  addItem(value);
+  inputElement.value = "";
 }
 
-function renderItems() {
-  ulElement.innerHTML = "";
-
-  for (let i = 0; i < savedItems.length; i++) {
-    let listItem = `
-    <li>
-      <a href='${savedItems[i]}' target='_blank'>
-        ${savedItems[i]}
-      </a>
-    </li>
-    `;
-
-    ulElement.innerHTML += listItem;
-  }
-}
-
-function checkAndAdd(event) {
-  if (event.type === "click" || event.key === "Enter") {
-    const inputValue = inputElement.value.trim();
-    if (inputValue === "") return;
-
-    handleAddItem(inputValue);
-    renderItems();
-    inputElement.value = "";
-  }
-}
-
-function deleteTabs() {
+// Delete all saved items
+function deleteItems() {
   savedItems = [];
-  localStorage.clear("savedItems");
-  ulElement.innerHTML = "";
+  localStorage.removeItem(STORAGE_KEY);
+  renderItems();
 }
 
-async function saveTab() {
-  const queryOptions = { active: true, currentWindow: true };
-  const [tab] = await chrome.tabs.query(queryOptions);
-  if (tab && tab.url) {
-    const currentUrl = tab.url;
-    handleAddItem(currentUrl);
-    renderItems();
-  } else {
-    alert("Cannot save internal browser pages for security reasons.");
-    console.warn(
-      "Access denied: The browser blocks URL access on internal pages.",
-    );
+// Delete single item
+function deleteItem(event) {
+  if (!event.target.matches("button")) return;
+
+  const itemElement = event.target.parentElement;
+  const index = Array.from(event.currentTarget.children).indexOf(itemElement);
+
+  if (index === -1) return;
+
+  savedItems.splice(index, 1);
+  persistItems();
+  itemElement.remove();
+}
+
+// Save the current Chrome tab
+async function saveCurrentTab() {
+  try {
+    const queryOptions = { active: true, currentWindow: true };
+    const [tab] = await chrome.tabs.query(queryOptions);
+
+    if (tab?.url) {
+      addItem(tab.url);
+    } else {
+      alert("Unable to access this tab's URL.");
+    }
+  } catch (error) {
+    console.error("Failed to save current tab:", error);
+    alert("Something went wrong while accessing the tab.");
   }
 }
 
-saveBtn.addEventListener("click", checkAndAdd);
-inputElement.addEventListener("keydown", checkAndAdd);
-deleteBtn.addEventListener("dblclick", deleteTabs);
-tabBtn.addEventListener("click", saveTab);
+// Event listeners
+inputElement.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    handleSaveInput();
+  }
+});
+
+saveBtn.addEventListener("click", handleSaveInput);
+deleteBtn.addEventListener("dblclick", deleteItems);
+tabBtn.addEventListener("click", saveCurrentTab);
+ulElement.addEventListener("click", deleteItem);
+// Initial render
+renderItems();
