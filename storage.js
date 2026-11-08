@@ -1,4 +1,4 @@
-export const STORAGE_KEY = "savedItems";
+const STORAGE_KEY = "savedItems";
 
 export function loadItems() {
   try {

@@ -70,7 +70,6 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* flex-wrap: wrap; */
   margin-top: 6px;
   margin-left: 6px;
   border-bottom: 1px solid var(--border-color);
@@ -91,7 +90,6 @@ a {
   text-overflow: ellipsis;
   flex-grow: 1;
   min-width: 0;
-  /* border: 1px solid red; */
 }
 
 #ul-element a {
@@ -109,8 +107,6 @@ a {
   background-position: 50% 100%; /* Centered at the bottom */
   background-repeat: no-repeat;
   background-size: 0% 2px; /* Starts completely hidden (0% width) */
-
-  /* Transition the size of the background line */
   transition: background-size 0.3s ease;
 }
 
