@@ -2,6 +2,7 @@
   --primary-color: #85cf5b;
   --accent-color: whitesmoke;
   --bg-color: #39353a;
+  --border-color: #888a8d;
 }
 
 body {
@@ -69,9 +70,10 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* flex-wrap: wrap; */
   margin-top: 6px;
   margin-left: 6px;
-  border-bottom: 1px solid #888a8d;
+  border-bottom: 1px solid var(--border-color);
 }
 
 #ul-element li:last-child {
@@ -80,6 +82,16 @@ button:hover {
 
 #ul-element li:hover {
   background-color: var(--bg-hover);
+}
+
+#ul-element span,
+a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  min-width: 0;
+  /* border: 1px solid red; */
 }
 
 #ul-element a {
@@ -107,9 +119,18 @@ button:hover {
   background-size: 100% 2px;
 }
 
+#ul-element li .li-button-container {
+  display: flex;
+  flex-shrink: 0;
+}
+
+#ul-element li:has(.li-input-on) {
+  flex-wrap: wrap;
+}
+
 #ul-element li button {
   background: transparent;
-  color: #888a8d;
+  color: var(--border-color);
   border: none;
   font-size: 14px;
   padding: 6px 10px;
@@ -121,8 +142,32 @@ button:hover {
     transform 0.2s ease;
 }
 
-#ul-element li button:hover {
+#ul-element li .li-delete-btn:hover {
   color: red;
   transform: scale(1.2);
   box-shadow: none;
+}
+
+#ul-element li .li-input-on {
+  flex-grow: 1;
+  border: 1px solid var(--border-color);
+  transform: translate(0.25rem, -0.25rem);
+  box-shadow: -0.16rem 0.2rem var(--primary-color);
+  outline: none;
+}
+
+li:has(.li-input-on) .li-button-container {
+  margin-left: auto;
+}
+
+#ul-element li:has(.li-input-on) .li-save-btn:hover {
+  color: var(--primary-color);
+}
+
+#ul-element li:has(.li-input-on) .li-cancel-btn:hover {
+  color: var(--accent-color);
+}
+
+.hidden {
+  display: none;
 }
