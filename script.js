@@ -152,6 +152,14 @@ function saveEdit() {
 async function saveCurrentTab() {
   try {
     const queryOptions = { active: true, currentWindow: true };
+
+    if (!chrome?.tabs) {
+      console.warn(
+        "This feature is only available inside the browser extension.",
+      );
+      return;
+    }
+
     const [tab] = await chrome.tabs.query(queryOptions);
 
     if (tab?.url) {
