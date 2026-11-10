@@ -1,4 +1,4 @@
-export function createLiElementWithButtons(item) {
+export function createLiElementWithButtons(item: string) {
   const li = document.createElement("li");
 
   if (isValidUrl(item)) {
@@ -38,7 +38,7 @@ export function createLiElementWithButtons(item) {
 }
 
 // Check if the item is a valid HTTP or HTTPS URL
-function isValidUrl(value) {
+function isValidUrl(value: string) {
   try {
     const url = new URL(value);
     return ["http:", "https:"].includes(url.protocol);
@@ -48,7 +48,7 @@ function isValidUrl(value) {
 }
 
 // Render saved items
-export function renderItems(ulElement, savedItems) {
+export function renderItems(ulElement: HTMLUListElement, savedItems: string[]) {
   ulElement.replaceChildren();
 
   const fragment = document.createDocumentFragment();

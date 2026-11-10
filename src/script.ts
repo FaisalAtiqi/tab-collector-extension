@@ -1,17 +1,25 @@
 import { clearItems, loadItems, persistItems } from "./storage.js";
 import { createLiElementWithButtons, renderItems } from "./ui.js";
 
-const inputElement = document.getElementById("input-element");
-const saveBtn = document.getElementById("save-btn");
-const deleteBtn = document.getElementById("delete-btn");
-const ulElement = document.getElementById("ul-element");
-const tabBtn = document.getElementById("tab-btn");
+const inputElement = document.querySelector<HTMLInputElement>("#input-element");
+const saveBtn = document.querySelector<HTMLButtonElement>("#save-btn");
+const deleteBtn = document.querySelector<HTMLButtonElement>("#delete-btn");
+const tabBtn = document.querySelector<HTMLButtonElement>("#tab-btn");
+const ulElement = document.querySelector<HTMLUListElement>("#ul-element");
+
+// Check that the elements exist
+if (!inputElement || !saveBtn || !deleteBtn || !ulElement || !tabBtn) {
+  throw new Error("Required DOM elements not found");
+}
 
 let savedItems = loadItems();
 
+// Preserve the non-null type for use inside function closures
+const unorderedListElement = ulElement;
+
 // Add a new item
-function addItem(value) {
-  const item = value?.trim();
+function addItem(value: string) {
+  const item = value.trim();
   if (!item) return false;
 
   if (savedItems.includes(item)) {
@@ -21,12 +29,15 @@ function addItem(value) {
 
   savedItems.push(item);
   persistItems(savedItems);
-  renderItems(ulElement, savedItems);
+  renderItems(unorderedListElement, savedItems);
   return true;
 }
 
 // Handle manual input
 function handleSaveInput() {
+  if (!inputElement) {
+    throw new Error("Input element not found");
+  }
   const value = inputElement.value;
 
   if (!value.trim()) return;
@@ -39,12 +50,15 @@ function handleSaveInput() {
 function deleteItems() {
   savedItems = [];
   clearItems();
-  renderItems(ulElement, savedItems);
+  renderItems(unorderedListElement, savedItems);
 }
 
 // Delete single item
-function deleteItem(listItem) {
-  const index = Array.from(listItem.parentElement.children).indexOf(listItem);
+function deleteItem(listItem: HTMLLIElement) {
+  const parentElement = listItem.parentElement;
+  if (!parentElement) return;
+
+  const index = Array.from(parentElement.children).indexOf(listItem);
   if (index === -1) return;
 
   savedItems.splice(index, 1);
@@ -54,11 +68,11 @@ function deleteItem(listItem) {
 
 // Get the currently active edit input element, if any
 function getActiveEditInput() {
-  return document.querySelector(".li-input-on");
+  return document.querySelector<HTMLInputElement>(".li-input-on");
 }
 
 // Edit single item
-function editItem(listItem) {
+function editItem(listItem: HTMLLIElement) {
   const activeEditInput = getActiveEditInput();
 
   if (activeEditInput) {
@@ -66,6 +80,7 @@ function editItem(listItem) {
   }
 
   const itemContentElement = listItem.firstElementChild;
+  if (!itemContentElement) return;
 
   // Create an input element for editing
   const editInput = document.createElement("input");
@@ -73,15 +88,22 @@ function editItem(listItem) {
   editInput.value = itemContentElement.textContent;
   editInput.className = "li-input-on";
 
+  // Change the buttons to SAVE and CANCEL
+  const buttonsContainer = listItem.querySelector<HTMLDivElement>(
+    ".li-button-container",
+  );
+  if (!buttonsContainer) return;
+
+  const editButton =
+    buttonsContainer.querySelector<HTMLButtonElement>(".li-edit-btn");
+  const deleteButton =
+    buttonsContainer.querySelector<HTMLButtonElement>(".li-delete-btn");
+
+  if (!editButton || !deleteButton) return;
+
   // Replace the element with the input element
   itemContentElement.replaceWith(editInput);
   editInput.focus();
-
-  // Change the buttons to SAVE and CANCEL
-  const buttonsContainer = listItem.querySelector(".li-button-container");
-
-  const editButton = buttonsContainer.querySelector(".li-edit-btn");
-  const deleteButton = buttonsContainer.querySelector(".li-delete-btn");
 
   editButton.textContent = "save";
   deleteButton.textContent = "cancel";
@@ -98,9 +120,10 @@ function cancelEdit() {
   const editingListItem = editInput.closest("li");
   if (!editingListItem) return;
 
-  const itemIndex = Array.from(editingListItem.parentElement.children).indexOf(
-    editingListItem,
-  );
+  const parentElement = editingListItem.parentElement;
+  if (!parentElement) return;
+
+  const itemIndex = Array.from(parentElement.children).indexOf(editingListItem);
   if (itemIndex === -1) return;
 
   const originalItem = savedItems[itemIndex];
@@ -121,9 +144,10 @@ function saveEdit() {
   const editingListItem = editInput.closest("li");
   if (!editingListItem) return;
 
-  const itemIndex = Array.from(editingListItem.parentElement.children).indexOf(
-    editingListItem,
-  );
+  const parentElement = editingListItem.parentElement;
+  if (!parentElement) return;
+
+  const itemIndex = Array.from(parentElement.children).indexOf(editingListItem);
   if (itemIndex === -1) return;
 
   const originalValue = savedItems[itemIndex];
@@ -145,7 +169,7 @@ function saveEdit() {
   savedItems[itemIndex] = newValue;
 
   persistItems(savedItems);
-  renderItems(ulElement, savedItems);
+  renderItems(unorderedListElement, savedItems);
 }
 
 // Save the current Chrome tab
@@ -180,22 +204,26 @@ inputElement.addEventListener("keydown", (event) => {
   }
 });
 
-saveBtn.addEventListener("click", handleSaveInput());
+saveBtn.addEventListener("click", handleSaveInput);
 deleteBtn.addEventListener("dblclick", deleteItems);
 tabBtn.addEventListener("click", saveCurrentTab);
 
 ulElement.addEventListener("click", (event) => {
+  if (!(event.target instanceof Element)) return;
+
   const button = event.target.closest("button");
 
   if (!button || !ulElement.contains(button)) return;
 
   if (button.classList.contains("li-delete-btn")) {
     const li = button.closest("li");
+    if (!li) return;
     return deleteItem(li);
   }
 
   if (button.classList.contains("li-edit-btn")) {
     const li = button.closest("li");
+    if (!li) return;
     return editItem(li);
   }
 
@@ -209,6 +237,7 @@ ulElement.addEventListener("click", (event) => {
 });
 
 ulElement.addEventListener("keydown", (event) => {
+  if (!(event.target instanceof Element)) return;
   if (!event.target.matches(".li-input-on")) return;
 
   if (event.key === "Enter") {
