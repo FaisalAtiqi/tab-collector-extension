@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,10 @@
   "type": "module",
   "devDependencies": {
     "@types/chrome": "^0.3.7",
-    "typescript": "^7.0.2"
+    "@types/jsdom": "^30.0.0",
+    "jsdom": "^31.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
   }
 }

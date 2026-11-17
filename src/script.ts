@@ -1,3 +1,4 @@
+import { addItem, deleteItem, updateItem } from "./items.js";
 import { clearItems, loadItems, persistItems } from "./storage.js";
 import { createLiElementWithButtons, renderItems } from "./ui.js";
 
@@ -17,53 +18,52 @@ let savedItems = loadItems();
 // Preserve the non-null type for use inside function closures
 const unorderedListElement = ulElement;
 
-// Add a new item
-function addItem(value: string) {
-  const item = value.trim();
-  if (!item) return false;
+function saveItem(item: string): boolean {
+  const result = addItem(savedItems, item);
 
-  if (savedItems.includes(item)) {
+  if (result.status === "empty") return false;
+  if (result.status === "duplicate") {
     alert("This item is already saved.");
     return false;
   }
 
-  savedItems.push(item);
+  savedItems = result.items;
   persistItems(savedItems);
   renderItems(unorderedListElement, savedItems);
   return true;
 }
-
 // Handle manual input
 function handleSaveInput() {
   if (!inputElement) {
     throw new Error("Input element not found");
   }
-  const value = inputElement.value;
-
-  if (!value.trim()) return;
-
-  const addedItem = addItem(value);
-  if (addedItem) inputElement.value = "";
+  const item = inputElement.value;
+  if (saveItem(item)) {
+    inputElement.value = "";
+  }
 }
 
 // Delete all saved items
-function deleteItems() {
+function handleDeleteItems() {
   savedItems = [];
   clearItems();
   renderItems(unorderedListElement, savedItems);
 }
 
 // Delete single item
-function deleteItem(listItem: HTMLLIElement) {
+function handleDeleteItem(listItem: HTMLLIElement) {
   const parentElement = listItem.parentElement;
   if (!parentElement) return;
 
   const index = Array.from(parentElement.children).indexOf(listItem);
   if (index === -1) return;
 
-  savedItems.splice(index, 1);
+  const result = deleteItem(savedItems, index);
+  if (result.status === "invalid-index") return;
+
+  savedItems = result.items;
   persistItems(savedItems);
-  listItem.remove();
+  renderItems(unorderedListElement, savedItems);
 }
 
 // Get the currently active edit input element, if any
@@ -72,11 +72,11 @@ function getActiveEditInput() {
 }
 
 // Edit single item
-function editItem(listItem: HTMLLIElement) {
+function handleEditItem(listItem: HTMLLIElement) {
   const activeEditInput = getActiveEditInput();
 
   if (activeEditInput) {
-    cancelEdit();
+    handleCancelEdit();
   }
 
   const itemContentElement = listItem.firstElementChild;
@@ -113,7 +113,7 @@ function editItem(listItem: HTMLLIElement) {
 }
 
 // Restore the previously edited item.
-function cancelEdit() {
+function handleCancelEdit() {
   const editInput = getActiveEditInput();
   if (!editInput) return;
 
@@ -134,12 +134,9 @@ function cancelEdit() {
 }
 
 // Save the edited item
-function saveEdit() {
+function handleSaveEdit() {
   const editInput = getActiveEditInput();
   if (!editInput) return;
-
-  const newValue = editInput.value.trim();
-  if (!newValue) return;
 
   const editingListItem = editInput.closest("li");
   if (!editingListItem) return;
@@ -150,30 +147,29 @@ function saveEdit() {
   const itemIndex = Array.from(parentElement.children).indexOf(editingListItem);
   if (itemIndex === -1) return;
 
-  const originalValue = savedItems[itemIndex];
+  const newItem = editInput.value;
+  const result = updateItem(savedItems, newItem, itemIndex);
 
-  if (newValue === originalValue) {
-    return cancelEdit();
+  if (result.status === "empty") return;
+  if (result.status === "invalid-index") return;
+
+  if (result.status === "unchanged") {
+    return handleCancelEdit();
   }
 
-  const duplicateItem = savedItems.some(
-    (item, index) => index !== itemIndex && item === newValue,
-  );
-
-  if (duplicateItem) {
+  if (result.status === "duplicate") {
     alert("This item already exists.");
     editInput.focus();
     return;
   }
 
-  savedItems[itemIndex] = newValue;
-
+  savedItems = result.items;
   persistItems(savedItems);
   renderItems(unorderedListElement, savedItems);
 }
 
 // Save the current Chrome tab
-async function saveCurrentTab() {
+async function handleSaveCurrentTab() {
   try {
     const queryOptions = { active: true, currentWindow: true };
 
@@ -187,7 +183,7 @@ async function saveCurrentTab() {
     const [tab] = await chrome.tabs.query(queryOptions);
 
     if (tab?.url) {
-      addItem(tab.url);
+      saveItem(tab.url);
     } else {
       alert("Unable to access this tab's URL.");
     }
@@ -205,8 +201,8 @@ inputElement.addEventListener("keydown", (event) => {
 });
 
 saveBtn.addEventListener("click", handleSaveInput);
-deleteBtn.addEventListener("dblclick", deleteItems);
-tabBtn.addEventListener("click", saveCurrentTab);
+deleteBtn.addEventListener("dblclick", handleDeleteItems);
+tabBtn.addEventListener("click", handleSaveCurrentTab);
 
 ulElement.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
@@ -218,21 +214,21 @@ ulElement.addEventListener("click", (event) => {
   if (button.classList.contains("li-delete-btn")) {
     const li = button.closest("li");
     if (!li) return;
-    return deleteItem(li);
+    return handleDeleteItem(li);
   }
 
   if (button.classList.contains("li-edit-btn")) {
     const li = button.closest("li");
     if (!li) return;
-    return editItem(li);
+    return handleEditItem(li);
   }
 
   if (button.classList.contains("li-cancel-btn")) {
-    return cancelEdit();
+    return handleCancelEdit();
   }
 
   if (button.classList.contains("li-save-btn")) {
-    return saveEdit();
+    return handleSaveEdit();
   }
 });
 
@@ -241,11 +237,11 @@ ulElement.addEventListener("keydown", (event) => {
   if (!event.target.matches(".li-input-on")) return;
 
   if (event.key === "Enter") {
-    return saveEdit();
+    return handleSaveEdit();
   }
 
   if (event.key === "Escape") {
-    return cancelEdit();
+    return handleCancelEdit();
   }
 });
 
