@@ -85,6 +85,8 @@ function handleEditItem(listItem: HTMLLIElement) {
   // Create an input element for editing
   const editInput = document.createElement("input");
   editInput.type = "text";
+  editInput.name = "edit-item";
+  editInput.setAttribute("aria-label", "Edit saved item");
   editInput.value = itemContentElement.textContent;
   editInput.className = "li-input-on";
 
@@ -106,7 +108,10 @@ function handleEditItem(listItem: HTMLLIElement) {
   editInput.focus();
 
   editButton.textContent = "save";
+  editButton.setAttribute("aria-label", "Save changes");
+
   deleteButton.textContent = "cancel";
+  deleteButton.setAttribute("aria-label", "Cancel editing");
 
   editButton.classList.replace("li-edit-btn", "li-save-btn");
   deleteButton.classList.replace("li-delete-btn", "li-cancel-btn");
