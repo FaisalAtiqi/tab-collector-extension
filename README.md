@@ -1,31 +1,40 @@
 # TabCollector Browser Extension
 
-TabCollector is a lightweight Chrome and Edge extension built with Manifest V3. It saves text entries and the active tab URL locally in browser storage.
+TabCollector is a lightweight Chrome and Microsoft Edge browser extension built with Manifest V3. It allows you to quickly save text entries and active tab URLs locally, making it easy to keep track of useful links and information.
 
 ## Features
 
-- Save text entered in the popup
+- Save text entries through the extension popup
 - Save the URL of the active browser tab
-- Edit or delete saved entries
+- Edit saved entries
+- Delete individual entries
 - Delete all saved entries
-- Keep data available locally with `localStorage`
+- Persist saved entries locally using `localStorage`
+- Open valid HTTP and HTTPS URLs directly from the saved list
+
+## Tech Stack
+
+- **TypeScript** – Application logic and type safety
+- **HTML & CSS** – Popup structure and styling
+- **Chrome Extensions API** – Access the active browser tab
+- **localStorage** – Local data persistence
+- **Vitest** – Unit and integration testing
+- **jsdom** – DOM environment for testing
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (a recent LTS release is recommended)
-- [pnpm](https://pnpm.io/) (the repository specifies `pnpm@12.18.0`)
-- Chrome or Microsoft Edge
+- [Node.js](https://nodejs.org/)
+- [pnpm](https://pnpm.io/)
+- Google Chrome or Microsoft Edge
 
-## TypeScript setup
+## Installation
 
-The project uses TypeScript 7 with strict type checking:
+Clone the repository:
 
-- Source files are in `src/`.
-- TypeScript compiles into `dist/` via `tsc`.
-- `tsconfig.json` targets ES2022 and emits ES modules.
-- Chrome types from `@types/chrome` provide browser API typings.
-- Strict checking, `noUncheckedIndexedAccess`, and `exactOptionalPropertyTypes` are enabled.
-- The popup loads the compiled entry point from `dist/script.js`.
+```bash
+git clone https://github.com/FaisalAtiqi/tab-collector-extension.git
+cd tab-collector-extension
+```
 
 Install dependencies:
 
@@ -33,103 +42,93 @@ Install dependencies:
 pnpm install
 ```
 
-Compile the TypeScript source:
+## Build
+
+Compile the TypeScript source files:
 
 ```bash
 pnpm build
 ```
 
-Compile automatically while TypeScript files change:
+The compiled JavaScript files are generated in the `dist/` directory.
+
+To automatically compile when source files change:
 
 ```bash
 pnpm build:watch
 ```
 
-Because `index.html` references `dist/script.js`, run the build before loading or testing the compiled extension in a browser.
+**Note:** The extension loads its JavaScript from `dist/script.js`, so you must build the project before loading it into your browser.
 
-## Project structure
+## Load the Extension
 
-```text
-.
-├── index.html                 # Extension popup markup
-├── manifest.json              # Chrome/Edge Manifest V3 configuration
-├── package.json               # pnpm scripts and development dependencies
-├── pnpm-lock.yaml             # Locked dependency versions
-├── pnpm-workspace.yaml        # pnpm workspace configuration
-├── style.css                  # Popup styles
-├── tsconfig.json              # TypeScript compiler configuration
-├── vitest.config.ts           # Vitest configuration
-├── src/
-│   ├── script.ts              # Popup initialization and browser interactions
-│   ├── items.ts               # Add, update, and delete item operations
-│   ├── storage.ts             # localStorage loading and persistence
-│   └── ui.ts                  # Popup rendering and UI helpers
-├── tests/
-│   ├── items.test.ts          # Item-operation unit tests
-│   └── storage.test.ts        # Storage unit tests
-└── dist/                      # Generated JavaScript and source maps
-```
+1. Open `chrome://extensions` in Chrome or `edge://extensions` in Microsoft Edge.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select the root directory of the cloned repository.
 
-## Run the extension locally
+The TabCollector extension should now appear in your browser's toolbar.
 
-1. Install dependencies and build the project:
-
-   ```bash
-   pnpm install
-   pnpm build
-   ```
-
-2. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
-
-3. Enable **Developer mode**.
-
-4. Choose **Load unpacked**.
-
-5. Select the repository root directory.
-
-The extension popup is available from the browser toolbar. After making source changes, run `pnpm build` again before reloading the extension.
+After modifying the TypeScript source files, run `pnpm build` and reload the extension to apply your changes.
 
 ## Testing
 
-Tests use Vitest with the jsdom environment. Run the complete test suite once:
+The project uses Vitest with the jsdom environment to test application logic, storage, UI rendering, and user interactions.
+
+Run the complete test suite:
 
 ```bash
 pnpm test
 ```
 
-Run tests in watch mode during development:
+Run tests in watch mode:
 
 ```bash
 pnpm test:watch
 ```
 
-Vitest automatically discovers test files such as:
-
-- `tests/items.test.ts`
-- `tests/storage.test.ts`
-
-To run one test file:
+Run an individual test file:
 
 ```bash
 pnpm exec vitest run tests/items.test.ts
 ```
 
-To run tests by name:
+### Test Structure
 
-```bash
-pnpm exec vitest run -t "test name"
+- `items.test.ts` – Tests for adding, updating, and deleting items.
+- `storage.test.ts` – Tests for loading, persisting, and clearing saved items.
+- `ui.test.ts` – Tests for creating and rendering list elements.
+- `script.test.ts` – Integration tests for saving, editing, and deleting items through the UI.
+
+## Project Structure
+
+```text
+TabCollector extension/
+├── src/
+│   ├── items.ts              # Item management functions
+│   ├── script.ts             # Application logic and event handling
+│   ├── storage.ts            # Local storage utilities
+│   └── ui.ts                 # UI creation and rendering
+├── tests/
+│   ├── items.test.ts         # Item management tests
+│   ├── script.test.ts        # UI integration tests
+│   ├── storage.test.ts       # Storage tests
+│   └── ui.test.ts            # UI rendering tests
+├── index.html                # Extension popup markup
+├── manifest.json             # Manifest V3 configuration
+├── style.css                 # Popup styling
+├── package.json              # Dependencies and scripts
+├── pnpm-lock.yaml            # Dependency lockfile
+├── pnpm-workspace.yaml       # pnpm workspace configuration
+├── tsconfig.json             # TypeScript configuration
+├── vitest.config.ts          # Vitest configuration
+└── .gitignore                # Ignored files and directories
 ```
 
-## Development workflow
+## Manifest Permissions
 
-```bash
-pnpm install
-pnpm build:watch
-pnpm test:watch
-```
+The extension requests the `activeTab` permission, which allows it to access information about the currently active tab when saving its URL.
 
-Keep the watch processes running while editing TypeScript files. Rebuild and reload the unpacked extension in the browser to verify popup behavior.
+## License
 
-## Manifest permissions
-
-The Manifest V3 file requests the `activeTab` permission, which allows the extension to inspect the current tab when the **SAVE TAB URL** action is used.
+This project is licensed under the ISC License.
